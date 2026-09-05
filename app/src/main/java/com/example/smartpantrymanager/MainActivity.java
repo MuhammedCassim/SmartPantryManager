@@ -1,24 +1,51 @@
 package com.example.smartpantrymanager;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+
+    private RecyclerView recyclerPantry;
+    private DatabaseHelper databaseHelper;
+    private PantryAdapter pantryAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+
+        Button btnAddIngredient = findViewById(R.id.btnAddIngredient);
+        recyclerPantry = findViewById(R.id.recyclerPantry);
+
+        databaseHelper = new DatabaseHelper(this);
+
+        // open add ingredient screen
+        btnAddIngredient.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddEditIngredientActivity.class);
+            startActivity(intent);
         });
+
+        loadPantryItems();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // refresh pantry when coming back
+        loadPantryItems();
+    }
+
+    private void loadPantryItems() {
+        ArrayList<PantryItem> pantryItems = databaseHelper.getAllPantryItems();
+
+        pantryAdapter = new PantryAdapter(this, pantryItems);
+        recyclerPantry.setAdapter(pantryAdapter);
     }
 }
