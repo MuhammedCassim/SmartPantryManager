@@ -21,13 +21,31 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button btnAddIngredient = findViewById(R.id.btnAddIngredient);
+        Button btnSuggestedRecipes = findViewById(R.id.btnSuggestedRecipes);
+
         recyclerPantry = findViewById(R.id.recyclerPantry);
 
         databaseHelper = new DatabaseHelper(this);
 
         // open add ingredient screen
         btnAddIngredient.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AddEditIngredientActivity.class);
+
+            Intent intent = new Intent(
+                    MainActivity.this,
+                    AddEditIngredientActivity.class
+            );
+
+            startActivity(intent);
+        });
+
+        // open suggested recipes
+        btnSuggestedRecipes.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    MainActivity.this,
+                    SuggestedRecipesActivity.class
+            );
+
             startActivity(intent);
         });
 
@@ -43,9 +61,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadPantryItems() {
-        ArrayList<PantryItem> pantryItems = databaseHelper.getAllPantryItems();
 
-        pantryAdapter = new PantryAdapter(this, pantryItems);
+        ArrayList<PantryItem> pantryItems =
+                databaseHelper.getAllPantryItems();
+
+        pantryAdapter =
+                new PantryAdapter(this, pantryItems);
+
         recyclerPantry.setAdapter(pantryAdapter);
     }
 }
