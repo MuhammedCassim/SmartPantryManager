@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,11 +23,13 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerPantry;
+    private TextView txtEmptyPantry;
     private DatabaseHelper databaseHelper;
     private PantryAdapter pantryAdapter;
 
     private static final String PREFS_NAME = "pantry_settings";
     private static final String EXPIRY_ALERTS = "expiry_alerts";
+    private static final String LAST_EXPIRY_ALERT = "last_expiry_alert";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +41,9 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerPantry =
                 findViewById(R.id.recyclerPantry);
+
+        txtEmptyPantry =
+                findViewById(R.id.txtEmptyPantry);
 
         BottomNavigationView bottomNavigation =
                 findViewById(R.id.bottomNavigation);
@@ -109,6 +116,17 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<PantryItem> pantryItems =
                 databaseHelper.getAllPantryItems();
 
+        if (pantryItems.isEmpty()) {
+
+            txtEmptyPantry.setVisibility(View.VISIBLE);
+            recyclerPantry.setVisibility(View.GONE);
+
+        } else {
+
+            txtEmptyPantry.setVisibility(View.GONE);
+            recyclerPantry.setVisibility(View.VISIBLE);
+        }
+
         pantryAdapter =
                 new PantryAdapter(this, pantryItems);
 
@@ -124,6 +142,20 @@ public class MainActivity extends AppCompatActivity {
                 preferences.getBoolean(EXPIRY_ALERTS, true);
 
         if (!alertsEnabled) {
+            return;
+        }
+
+        // stop repeat alerts
+        SimpleDateFormat alertDateFormat =
+                new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
+
+        String todayValue =
+                alertDateFormat.format(new Date());
+
+        String lastAlert =
+                preferences.getString(LAST_EXPIRY_ALERT, "");
+
+        if (todayValue.equals(lastAlert)) {
             return;
         }
 
@@ -172,16 +204,20 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } catch (ParseException e) {
-                // skip invalid dates
+                // skip bad dates
             }
         }
 
         if (expiringItems.length() > 0) {
 
+            preferences.edit()
+                    .putString(LAST_EXPIRY_ALERT, todayValue)
+                    .apply();
+
             new AlertDialog.Builder(this)
                     .setTitle("expiring soon")
                     .setMessage(
-                            "these pantry items are close to their expiry date\n\n"
+                            "these items are expiring soon\n\n"
                                     + expiringItems
                     )
                     .setPositiveButton("ok", null)

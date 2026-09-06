@@ -3,12 +3,12 @@ package com.example.smartpantrymanager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class SettingsActivity extends AppCompatActivity {
 
