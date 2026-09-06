@@ -7,6 +7,8 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,15 +23,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button btnAddIngredient = findViewById(R.id.btnAddIngredient);
-        Button btnSuggestedRecipes = findViewById(R.id.btnSuggestedRecipes);
-
         recyclerPantry = findViewById(R.id.recyclerPantry);
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
 
         databaseHelper = new DatabaseHelper(this);
 
         // open add ingredient screen
         btnAddIngredient.setOnClickListener(v -> {
-
             Intent intent = new Intent(
                     MainActivity.this,
                     AddEditIngredientActivity.class
@@ -38,15 +38,38 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // open suggested recipes
-        btnSuggestedRecipes.setOnClickListener(v -> {
+        bottomNavigation.setSelectedItemId(R.id.navPantry);
 
-            Intent intent = new Intent(
-                    MainActivity.this,
-                    SuggestedRecipesActivity.class
-            );
+        // bottom navigation
+        bottomNavigation.setOnItemSelectedListener(item -> {
 
-            startActivity(intent);
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.navPantry) {
+                return true;
+            }
+
+            if (itemId == R.id.navRecipes) {
+                Intent intent = new Intent(
+                        MainActivity.this,
+                        SuggestedRecipesActivity.class
+                );
+
+                startActivity(intent);
+                return true;
+            }
+
+            if (itemId == R.id.navSettings) {
+                Intent intent = new Intent(
+                        MainActivity.this,
+                        SettingsActivity.class
+                );
+
+                startActivity(intent);
+                return true;
+            }
+
+            return false;
         });
 
         loadPantryItems();

@@ -2,7 +2,6 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -17,24 +16,31 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="My Pantry"
+            android:text="Settings"
             android:textSize="26sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="24dp" />
 
-        <Button
-            android:id="@+id/btnAddIngredient"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pantry alerts"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchExpiryAlerts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add Ingredient"
-            android:layout_marginBottom="16dp" />
+            android:text="Expiring soon alerts" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerPantry"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:layout_height="wrap_content"
+            android:text="show alerts for pantry items that are close to their expiry date"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
 
