@@ -1,6 +1,8 @@
 package com.example.smartpantrymanager;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 
@@ -9,7 +11,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,19 +24,28 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseHelper databaseHelper;
     private PantryAdapter pantryAdapter;
 
+    private static final String PREFS_NAME = "pantry_settings";
+    private static final String EXPIRY_ALERTS = "expiry_alerts";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btnAddIngredient = findViewById(R.id.btnAddIngredient);
-        recyclerPantry = findViewById(R.id.recyclerPantry);
-        BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
+        Button btnAddIngredient =
+                findViewById(R.id.btnAddIngredient);
+
+        recyclerPantry =
+                findViewById(R.id.recyclerPantry);
+
+        BottomNavigationView bottomNavigation =
+                findViewById(R.id.bottomNavigation);
 
         databaseHelper = new DatabaseHelper(this);
 
         // open add ingredient screen
         btnAddIngredient.setOnClickListener(v -> {
+
             Intent intent = new Intent(
                     MainActivity.this,
                     AddEditIngredientActivity.class
@@ -50,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (itemId == R.id.navRecipes) {
+
                 Intent intent = new Intent(
                         MainActivity.this,
                         SuggestedRecipesActivity.class
@@ -60,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (itemId == R.id.navSettings) {
+
                 Intent intent = new Intent(
                         MainActivity.this,
                         SettingsActivity.class
@@ -81,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
 
         // refresh pantry when coming back
         loadPantryItems();
+
+        // check expiry dates
+        checkExpiryAlerts();
     }
 
     private void loadPantryItems() {
@@ -92,5 +113,79 @@ public class MainActivity extends AppCompatActivity {
                 new PantryAdapter(this, pantryItems);
 
         recyclerPantry.setAdapter(pantryAdapter);
+    }
+
+    private void checkExpiryAlerts() {
+
+        SharedPreferences preferences =
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        boolean alertsEnabled =
+                preferences.getBoolean(EXPIRY_ALERTS, true);
+
+        if (!alertsEnabled) {
+            return;
+        }
+
+        ArrayList<PantryItem> pantryItems =
+                databaseHelper.getAllPantryItems();
+
+        StringBuilder expiringItems = new StringBuilder();
+
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("d/M/yyyy", Locale.getDefault());
+
+        dateFormat.setLenient(false);
+
+        Date today = new Date();
+
+        for (PantryItem item : pantryItems) {
+
+            String expiryDate = item.getExpiryDate();
+
+            if (expiryDate == null || expiryDate.isEmpty()) {
+                continue;
+            }
+
+            try {
+
+                Date expiry = dateFormat.parse(expiryDate);
+
+                if (expiry == null) {
+                    continue;
+                }
+
+                long difference =
+                        expiry.getTime() - today.getTime();
+
+                long daysLeft =
+                        TimeUnit.MILLISECONDS.toDays(difference);
+
+                if (daysLeft >= 0 && daysLeft <= 3) {
+
+                    expiringItems
+                            .append("• ")
+                            .append(item.getName())
+                            .append(" - ")
+                            .append(expiryDate)
+                            .append("\n");
+                }
+
+            } catch (ParseException e) {
+                // skip invalid dates
+            }
+        }
+
+        if (expiringItems.length() > 0) {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("expiring soon")
+                    .setMessage(
+                            "these pantry items are close to their expiry date\n\n"
+                                    + expiringItems
+                    )
+                    .setPositiveButton("ok", null)
+                    .show();
+        }
     }
 }
