@@ -20,14 +20,15 @@
             android:text="My Pantry"
             android:textSize="26sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp" />
 
         <Button
             android:id="@+id/btnAddIngredient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Add Ingredient"
-            android:layout_marginBottom="16dp" />
+            android:textAllCaps="false"
+            android:layout_marginBottom="20dp" />
 
         <TextView
             android:id="@+id/txtEmptyPantry"
@@ -36,6 +37,7 @@
             android:text="your pantry is empty - add an ingredient to get started"
             android:textSize="16sp"
             android:visibility="gone"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -43,6 +45,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     </LinearLayout>
