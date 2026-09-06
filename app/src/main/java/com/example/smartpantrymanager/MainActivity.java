@@ -30,12 +30,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "pantry_settings";
     private static final String EXPIRY_ALERTS = "expiry_alerts";
     private static final String LAST_EXPIRY_ALERT = "last_expiry_alert";
+    private static final String LAST_EXPIRY_ITEMS = "last_expiry_items";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // setup screen items
         Button btnAddIngredient =
                 findViewById(R.id.btnAddIngredient);
 
@@ -116,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<PantryItem> pantryItems =
                 databaseHelper.getAllPantryItems();
 
+        // show empty pantry message
         if (pantryItems.isEmpty()) {
 
             txtEmptyPantry.setVisibility(View.VISIBLE);
@@ -135,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkExpiryAlerts() {
 
+        // get saved alert settings
         SharedPreferences preferences =
                 getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
@@ -142,20 +146,6 @@ public class MainActivity extends AppCompatActivity {
                 preferences.getBoolean(EXPIRY_ALERTS, true);
 
         if (!alertsEnabled) {
-            return;
-        }
-
-        // stop repeat alerts
-        SimpleDateFormat alertDateFormat =
-                new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
-
-        String todayValue =
-                alertDateFormat.format(new Date());
-
-        String lastAlert =
-                preferences.getString(LAST_EXPIRY_ALERT, "");
-
-        if (todayValue.equals(lastAlert)) {
             return;
         }
 
@@ -171,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
         Date today = new Date();
 
+        // find items expiring soon
         for (PantryItem item : pantryItems) {
 
             String expiryDate = item.getExpiryDate();
@@ -208,20 +199,44 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        if (expiringItems.length() > 0) {
-
-            preferences.edit()
-                    .putString(LAST_EXPIRY_ALERT, todayValue)
-                    .apply();
-
-            new AlertDialog.Builder(this)
-                    .setTitle("expiring soon")
-                    .setMessage(
-                            "these items are expiring soon\n\n"
-                                    + expiringItems
-                    )
-                    .setPositiveButton("ok", null)
-                    .show();
+        if (expiringItems.length() == 0) {
+            return;
         }
+
+        SimpleDateFormat alertDateFormat =
+                new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
+
+        String todayValue =
+                alertDateFormat.format(new Date());
+
+        String lastAlert =
+                preferences.getString(LAST_EXPIRY_ALERT, "");
+
+        String lastItems =
+                preferences.getString(LAST_EXPIRY_ITEMS, "");
+
+        String currentItems =
+                expiringItems.toString();
+
+        // stop same alert showing again
+        if (todayValue.equals(lastAlert)
+                && currentItems.equals(lastItems)) {
+            return;
+        }
+
+        // save last alert
+        preferences.edit()
+                .putString(LAST_EXPIRY_ALERT, todayValue)
+                .putString(LAST_EXPIRY_ITEMS, currentItems)
+                .apply();
+
+        new AlertDialog.Builder(this)
+                .setTitle("expiring soon")
+                .setMessage(
+                        "these items are expiring soon\n\n"
+                                + expiringItems
+                )
+                .setPositiveButton("ok", null)
+                .show();
     }
 }
