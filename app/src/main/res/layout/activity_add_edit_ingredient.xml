@@ -11,11 +11,10 @@
         android:padding="24dp">
 
         <TextView
-            android:id="@+id/txtTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Ingredient"
-            android:textSize="24sp"
+            android:textSize="26sp"
             android:textStyle="bold"
             android:layout_marginBottom="24dp" />
 
@@ -24,8 +23,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ingredient name"
-            android:inputType="textCapWords"
-            android:layout_marginBottom="16dp" />
+            android:inputType="text"
+            android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/editQuantity"
@@ -33,15 +32,29 @@
             android:layout_height="wrap_content"
             android:hint="Quantity"
             android:inputType="numberDecimal"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
-        <EditText
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unit"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
             android:id="@+id/editUnit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Unit eg g, ml, pieces"
-            android:inputType="text"
-            android:layout_marginBottom="16dp" />
+            android:minHeight="48dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/txtUnitHelp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="units will change based on the ingredient"
+            android:textSize="13sp"
+            android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/editExpiry"
@@ -50,10 +63,10 @@
             android:hint="Expiry date optional"
             android:focusable="false"
             android:clickable="true"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
         <Button
-            android:id="@+id/btnSave"
+            android:id="@+id/btnSaveIngredient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Ingredient" />

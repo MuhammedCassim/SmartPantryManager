@@ -2,150 +2,325 @@ package com.example.smartpantrymanager;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class AddEditIngredientActivity extends AppCompatActivity {
 
     private EditText editName;
     private EditText editQuantity;
-    private EditText editUnit;
+    private Spinner editUnit;
     private EditText editExpiry;
 
     private DatabaseHelper databaseHelper;
 
     private int itemId = -1;
+    private String currentUnit = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_ingredient);
 
-        // link the form fields
         editName = findViewById(R.id.editName);
         editQuantity = findViewById(R.id.editQuantity);
         editUnit = findViewById(R.id.editUnit);
         editExpiry = findViewById(R.id.editExpiry);
-        Button btnSave = findViewById(R.id.btnSave);
+
+        Button btnSaveIngredient =
+                findViewById(R.id.btnSaveIngredient);
 
         databaseHelper = new DatabaseHelper(this);
 
-        // check if item is being edited
+        // load item if editing
         if (getIntent().hasExtra("id")) {
-            itemId = getIntent().getIntExtra("id", -1);
 
-            String name = getIntent().getStringExtra("name");
-            double quantity = getIntent().getDoubleExtra("quantity", 0);
-            String unit = getIntent().getStringExtra("unit");
-            String expiry = getIntent().getStringExtra("expiry");
+            itemId =
+                    getIntent().getIntExtra("id", -1);
+
+            String name =
+                    getIntent().getStringExtra("name");
+
+            double quantity =
+                    getIntent().getDoubleExtra(
+                            "quantity",
+                            0
+                    );
+
+            currentUnit =
+                    getIntent().getStringExtra("unit");
+
+            String expiry =
+                    getIntent().getStringExtra("expiry");
 
             editName.setText(name);
-            editQuantity.setText(String.valueOf(quantity));
-            editUnit.setText(unit);
-            editExpiry.setText(expiry);
+            editQuantity.setText(
+                    String.valueOf(quantity)
+            );
 
-            btnSave.setText("Update Ingredient");
-        }
-
-        // open date picker
-        editExpiry.setOnClickListener(v -> showDatePicker());
-
-        // save ingredient
-        btnSave.setOnClickListener(v -> saveIngredient());
-    }
-
-    private void showDatePicker() {
-        Calendar calendar = Calendar.getInstance();
-
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog dialog = new DatePickerDialog(
-                this,
-                (view, selectedYear, selectedMonth, selectedDay) -> {
-                    String date = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
-                    editExpiry.setText(date);
-                },
-                year,
-                month,
-                day
-        );
-
-        dialog.show();
-    }
-
-    private void saveIngredient() {
-        String name = editName.getText().toString().trim();
-        String quantityText = editQuantity.getText().toString().trim();
-        String unit = editUnit.getText().toString().trim();
-        String expiryDate = editExpiry.getText().toString().trim();
-
-        // basic validation
-        if (name.isEmpty()) {
-            editName.setError("enter ingredient name");
-            return;
-        }
-
-        if (quantityText.isEmpty()) {
-            editQuantity.setError("enter quantity");
-            return;
-        }
-
-        if (unit.isEmpty()) {
-            editUnit.setError("enter unit");
-            return;
-        }
-
-        double quantity;
-
-        try {
-            quantity = Double.parseDouble(quantityText);
-        } catch (NumberFormatException e) {
-            editQuantity.setError("enter a valid quantity");
-            return;
-        }
-
-        if (quantity <= 0) {
-            editQuantity.setError("quantity must be above 0");
-            return;
-        }
-
-        PantryItem item = new PantryItem(
-                itemId,
-                name,
-                quantity,
-                unit,
-                expiryDate
-        );
-
-        if (itemId == -1) {
-
-            // add new item
-            long result = databaseHelper.addPantryItem(item);
-
-            if (result != -1) {
-                Toast.makeText(this, "ingredient saved", Toast.LENGTH_SHORT).show();
-                finish();
-            } else {
-                Toast.makeText(this, "could not save ingredient", Toast.LENGTH_SHORT).show();
+            if (expiry != null) {
+                editExpiry.setText(expiry);
             }
+
+            btnSaveIngredient.setText(
+                    "Update Ingredient"
+            );
+
+            updateUnitOptions(
+                    name,
+                    currentUnit
+            );
 
         } else {
 
-            // update item
-            int result = databaseHelper.updatePantryItem(item);
+            updateUnitOptions(
+                    "",
+                    ""
+            );
+        }
 
-            if (result > 0) {
-                Toast.makeText(this, "ingredient updated", Toast.LENGTH_SHORT).show();
-                finish();
+        // change units when ingredient changes
+        editName.addTextChangedListener(
+                new TextWatcher() {
+
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s,
+                            int start,
+                            int count,
+                            int after) {
+                    }
+
+                    @Override
+                    public void onTextChanged(
+                            CharSequence s,
+                            int start,
+                            int before,
+                            int count) {
+
+                        updateUnitOptions(
+                                s.toString(),
+                                ""
+                        );
+                    }
+
+                    @Override
+                    public void afterTextChanged(
+                            Editable s) {
+                    }
+                }
+        );
+
+        // choose expiry date
+        editExpiry.setOnClickListener(v -> {
+
+            Calendar calendar =
+                    Calendar.getInstance();
+
+            int year =
+                    calendar.get(Calendar.YEAR);
+
+            int month =
+                    calendar.get(Calendar.MONTH);
+
+            int day =
+                    calendar.get(
+                            Calendar.DAY_OF_MONTH
+                    );
+
+            DatePickerDialog datePickerDialog =
+                    new DatePickerDialog(
+                            this,
+                            (view,
+                             selectedYear,
+                             selectedMonth,
+                             selectedDay) -> {
+
+                                String date =
+                                        selectedDay
+                                                + "/"
+                                                + (selectedMonth + 1)
+                                                + "/"
+                                                + selectedYear;
+
+                                editExpiry.setText(date);
+                            },
+                            year,
+                            month,
+                            day
+                    );
+
+            datePickerDialog.show();
+        });
+
+        // save ingredient
+        btnSaveIngredient.setOnClickListener(v -> {
+
+            String name =
+                    editName
+                            .getText()
+                            .toString()
+                            .trim();
+
+            String quantityText =
+                    editQuantity
+                            .getText()
+                            .toString()
+                            .trim();
+
+            String expiry =
+                    editExpiry
+                            .getText()
+                            .toString()
+                            .trim();
+
+            if (name.isEmpty()) {
+
+                editName.setError(
+                        "enter ingredient name"
+                );
+
+                return;
+            }
+
+            if (quantityText.isEmpty()) {
+
+                editQuantity.setError(
+                        "enter quantity"
+                );
+
+                return;
+            }
+
+            double quantity;
+
+            try {
+
+                quantity =
+                        Double.parseDouble(
+                                quantityText
+                        );
+
+            } catch (NumberFormatException e) {
+
+                editQuantity.setError(
+                        "enter a valid quantity"
+                );
+
+                return;
+            }
+
+            if (quantity <= 0) {
+
+                editQuantity.setError(
+                        "quantity must be more than 0"
+                );
+
+                return;
+            }
+
+            if (editUnit.getSelectedItem()
+                    == null) {
+
+                Toast.makeText(
+                        this,
+                        "select a unit",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                return;
+            }
+
+            String unit =
+                    editUnit
+                            .getSelectedItem()
+                            .toString();
+
+            PantryItem pantryItem =
+                    new PantryItem(
+                            itemId,
+                            name,
+                            quantity,
+                            unit,
+                            expiry
+                    );
+
+            if (itemId == -1) {
+
+                databaseHelper.addPantryItem(
+                        pantryItem
+                );
+
+                Toast.makeText(
+                        this,
+                        "ingredient saved",
+                        Toast.LENGTH_SHORT
+                ).show();
+
             } else {
-                Toast.makeText(this, "could not update ingredient", Toast.LENGTH_SHORT).show();
+
+                databaseHelper.updatePantryItem(
+                        pantryItem
+                );
+
+                Toast.makeText(
+                        this,
+                        "ingredient updated",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+
+            finish();
+        });
+    }
+
+    private void updateUnitOptions(
+            String ingredientName,
+            String selectedUnit) {
+
+        // get units for ingredient
+        ArrayList<String> units =
+                databaseHelper
+                        .getUnitsForIngredient(
+                                ingredientName
+                        );
+
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout
+                                .simple_spinner_item,
+                        units
+                );
+
+        adapter.setDropDownViewResource(
+                android.R.layout
+                        .simple_spinner_dropdown_item
+        );
+
+        editUnit.setAdapter(adapter);
+
+        // keep saved unit when editing
+        if (selectedUnit != null
+                && !selectedUnit.isEmpty()) {
+
+            int position =
+                    units.indexOf(
+                            selectedUnit
+                    );
+
+            if (position >= 0) {
+                editUnit.setSelection(position);
             }
         }
     }

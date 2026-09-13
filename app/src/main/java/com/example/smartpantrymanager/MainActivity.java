@@ -16,6 +16,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -159,7 +160,15 @@ public class MainActivity extends AppCompatActivity {
 
         dateFormat.setLenient(false);
 
-        Date today = new Date();
+        // remove time from todays date
+        Calendar todayCalendar = Calendar.getInstance();
+
+        todayCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        todayCalendar.set(Calendar.MINUTE, 0);
+        todayCalendar.set(Calendar.SECOND, 0);
+        todayCalendar.set(Calendar.MILLISECOND, 0);
+
+        Date today = todayCalendar.getTime();
 
         // find items expiring soon
         for (PantryItem item : pantryItems) {
@@ -177,6 +186,17 @@ public class MainActivity extends AppCompatActivity {
                 if (expiry == null) {
                     continue;
                 }
+
+                // remove time from expiry date
+                Calendar expiryCalendar = Calendar.getInstance();
+                expiryCalendar.setTime(expiry);
+
+                expiryCalendar.set(Calendar.HOUR_OF_DAY, 0);
+                expiryCalendar.set(Calendar.MINUTE, 0);
+                expiryCalendar.set(Calendar.SECOND, 0);
+                expiryCalendar.set(Calendar.MILLISECOND, 0);
+
+                expiry = expiryCalendar.getTime();
 
                 long difference =
                         expiry.getTime() - today.getTime();
